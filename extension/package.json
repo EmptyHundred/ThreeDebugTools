@@ -1,0 +1,107 @@
+{
+  "name": "three-scene-inspector",
+  "displayName": "Three.js Scene Inspector",
+  "description": "Load a URL headlessly, hook the three.js runtime via __THREE_DEVTOOLS__, and inspect the scene hierarchy and ShaderMaterials in a tree view.",
+  "version": "0.0.5",
+  "publisher": "three-debug-tools",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Debuggers", "Visualization"],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "threeInspector",
+          "title": "Three Inspector",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "threeInspector": [
+        {
+          "id": "threeSceneTree",
+          "name": "TREE"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "threeInspector.scanUrl",
+        "title": "Three Inspector: Scan URL",
+        "icon": "$(search)"
+      },
+      {
+        "command": "threeInspector.rescan",
+        "title": "Three Inspector: Rescan",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "threeInspector.scanUrlHeaded",
+        "title": "Three Inspector: Scan URL (visible browser)",
+        "icon": "$(browser)"
+      },
+      {
+        "command": "threeInspector.closeBrowser",
+        "title": "Three Inspector: Close Browser",
+        "icon": "$(close)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "threeInspector.scanUrl",
+          "when": "view == threeSceneTree",
+          "group": "navigation@1"
+        },
+        {
+          "command": "threeInspector.scanUrlHeaded",
+          "when": "view == threeSceneTree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "threeInspector.rescan",
+          "when": "view == threeSceneTree",
+          "group": "navigation@3"
+        },
+        {
+          "command": "threeInspector.closeBrowser",
+          "when": "view == threeSceneTree && threeInspector.sessionOpen",
+          "group": "navigation@4"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Three.js Scene Inspector",
+      "properties": {
+        "threeInspector.headless": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run the controlled Chromium headlessly (no visible window). Disable to watch the page Playwright loads."
+        },
+        "threeInspector.settleMs": {
+          "type": "number",
+          "default": 1500,
+          "description": "Milliseconds to wait after page load for three.js to initialize before scanning."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "watch": "tsc -p ./ -w",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.6.0"
+  }
+}

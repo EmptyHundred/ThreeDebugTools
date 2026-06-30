@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "vite: dev",
+      "type": "npm",
+      "script": "dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Local:\\s+http"
+        }
+      }
+    },
+    {
+      "label": "dev: open in VS Code",
+      "dependsOn": "vite: dev",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:openInSimpleBrowser}"],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "silent",
+        "close": true
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "openInSimpleBrowser",
+      "type": "command",
+      "command": "simpleBrowser.show",
+      "args": "http://localhost:5173"
+    }
+  ]
+}
