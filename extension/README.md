@@ -7,7 +7,7 @@ the scene hierarchy and `ShaderMaterial`s in a VS Code tree view.
 ## Usage
 
 1. Open the **Three Inspector** view in the activity bar.
-2. Click **Scan URL** and enter the page to inspect (e.g. `http://localhost:5173`).
+2. Click **Scan URL** and enter the page to inspect (e.g. `http://localhost:4563`).
 3. Expand: scene → node → ShaderMaterial → click `vertexShader` / `fragmentShader`
    to open the GLSL source.
 

@@ -2,7 +2,7 @@
   "name": "three-scene-inspector",
   "displayName": "Three.js Scene Inspector",
   "description": "Load a URL headlessly, hook the three.js runtime via __THREE_DEVTOOLS__, and inspect the scene hierarchy and ShaderMaterials in a tree view.",
-  "version": "0.0.5",
+  "version": "0.0.9",
   "publisher": "three-debug-tools",
   "private": true,
   "engines": {

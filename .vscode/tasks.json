@@ -33,6 +33,30 @@
         "reveal": "silent",
         "close": true
       }
+    },
+    {
+      "label": "inspector: scan dev server",
+      "dependsOn": "vite: dev",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:scanWithInspector}"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "close": true
+      }
+    },
+    {
+      "label": "inspector: scan dev server (headed)",
+      "dependsOn": "vite: dev",
+      "type": "shell",
+      "command": "echo",
+      "args": ["${input:scanWithInspectorHeaded}"],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "close": true
+      }
     }
   ],
   "inputs": [
@@ -40,7 +64,19 @@
       "id": "openInSimpleBrowser",
       "type": "command",
       "command": "simpleBrowser.show",
-      "args": "http://localhost:5173"
+      "args": "http://localhost:4563"
+    },
+    {
+      "id": "scanWithInspector",
+      "type": "command",
+      "command": "threeInspector.scanUrl",
+      "args": { "url": "http://localhost:4563", "headless": true }
+    },
+    {
+      "id": "scanWithInspectorHeaded",
+      "type": "command",
+      "command": "threeInspector.scanUrlHeaded",
+      "args": { "url": "http://localhost:4563" }
     }
   ]
 }

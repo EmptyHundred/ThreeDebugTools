@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // The Vite dev server IS the debuggee, so the VS Code Stop button kills
+      // it directly. The custom `threeInspector` block is read by the extension:
+      // on session start it waits for the URL then runs a headed scan; on Stop
+      // (session terminate) it closes the inspector browser. One Stop tears down
+      // both the server and the inspector window.
+      "name": "Dev Headed Inspect",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal",
+      "threeInspector": {
+        "url": "http://localhost:4563",
+        "scan": "headed"
+      }
+    }
+  ]
+}

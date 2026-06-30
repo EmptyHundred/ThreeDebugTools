@@ -4,7 +4,8 @@ import glsl from 'vite-plugin-glsl'
 export default defineConfig({
   plugins: [glsl()],
   server: {
-    port: 5173,
+    port: 4563,
+    strictPort: true,
     open: false,
   },
 })

@@ -28,8 +28,10 @@ const material = new THREE.ShaderMaterial({
   fragmentShader,
 })
 
+material.name = "CubeShaderMat"
+
 const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material)
-mesh.name = "123"
+mesh.name = "MeshCube"
 scene.add(mesh)
 
 const clock = new THREE.Clock()
