@@ -3,6 +3,7 @@ import { scanUrl, openScanSession, rescanSession, pollUniforms, type ScanSession
 import { SceneTreeProvider } from './treeProvider'
 import { UniformsPanel } from './uniformsPanel'
 import { resolveShaderFile } from './resolveShader'
+import { resolveUniformDeclaration } from './astResolver'
 import type { ScanResult, ShaderMaterialInfo } from './types'
 
 let lastUrl: string | undefined
@@ -226,6 +227,47 @@ export function activate(context: vscode.ExtensionContext): void {
         uniformsPanel.show(material)
         // Live-track this material's values when a headed page is open.
         startPolling()
+      }
+    ),
+
+    vscode.commands.registerCommand(
+      'threeInspector.findUniformRefs',
+      async (uniform: string, materialName?: string) => {
+        // Preferred: AST-resolve the exact uniform declaration on THIS material,
+        // jump to it, and open a references peek (TS language service traces the
+        // real references from that precise position).
+        if (materialName) {
+          const loc = await resolveUniformDeclaration(materialName, uniform)
+          if (loc) {
+            const doc = await vscode.workspace.openTextDocument(loc.uri)
+            const editor = await vscode.window.showTextDocument(doc)
+            const pos = new vscode.Position(loc.line, loc.character)
+            editor.selection = new vscode.Selection(pos, pos.translate(0, loc.length))
+            editor.revealRange(
+              new vscode.Range(pos, pos),
+              vscode.TextEditorRevealType.InCenter
+            )
+            // Peek all references from the declaration site.
+            await vscode.commands.executeCommand(
+              'editor.action.referenceSearch.trigger'
+            )
+            return
+          }
+          vscode.window.showInformationMessage(
+            `Couldn't statically resolve "${uniform}" on "${materialName}" — falling back to text search.`
+          )
+        }
+
+        // Fallback: text search across JS/TS only (GLSL is reachable by opening
+        // the shader itself).
+        await vscode.commands.executeCommand('workbench.action.findInFiles', {
+          query: uniform,
+          isRegex: false,
+          isCaseSensitive: true,
+          matchWholeWord: true,
+          triggerSearch: true,
+          filesToInclude: '*.ts, *.tsx, *.js, *.jsx, *.mjs, *.cjs',
+        })
       }
     ),
 

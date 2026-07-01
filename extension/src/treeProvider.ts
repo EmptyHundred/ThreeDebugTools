@@ -10,7 +10,7 @@ import type { ScanResult, SceneNode, ShaderMaterialInfo } from './types'
 type Entry =
   | { kind: 'node'; node: SceneNode }
   | { kind: 'material'; material: ShaderMaterialInfo }
-  | { kind: 'info'; label: string; description?: string; material?: ShaderMaterialInfo; shader?: 'vertex' | 'fragment' }
+  | { kind: 'info'; label: string; description?: string; material?: ShaderMaterialInfo; shader?: 'vertex' | 'fragment'; uniform?: string; materialName?: string }
 
 export class SceneTreeProvider implements vscode.TreeDataProvider<Entry> {
   private _onDidChange = new vscode.EventEmitter<Entry | undefined | void>()
@@ -71,6 +71,15 @@ export class SceneTreeProvider implements vscode.TreeDataProvider<Entry> {
         title: 'Open Shader',
         arguments: [entry.material, entry.shader],
       }
+    } else if (entry.uniform) {
+      item.iconPath = new vscode.ThemeIcon('symbol-variable')
+      item.contextValue = 'uniform'
+      // Click searches JS/TS files for references to this uniform name.
+      item.command = {
+        command: 'threeInspector.findUniformRefs',
+        title: 'Find Uniform References',
+        arguments: [entry.uniform, entry.materialName],
+      }
     }
     return item
   }
@@ -101,7 +110,7 @@ export class SceneTreeProvider implements vscode.TreeDataProvider<Entry> {
       out.push({ kind: 'info', label: 'vertexShader', description: `${m.vertexShader.split('\n').length} lines`, material: m, shader: 'vertex' })
       out.push({ kind: 'info', label: 'fragmentShader', description: `${m.fragmentShader.split('\n').length} lines`, material: m, shader: 'fragment' })
       for (const u of m.uniformNames) {
-        out.push({ kind: 'info', label: u, description: 'uniform' })
+        out.push({ kind: 'info', label: u, description: 'uniform', uniform: u, materialName: m.name })
       }
       return out
     }

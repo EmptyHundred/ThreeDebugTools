@@ -2,7 +2,7 @@
   "name": "three-scene-inspector",
   "displayName": "Three.js Scene Inspector",
   "description": "Load a URL headlessly, hook the three.js runtime via __THREE_DEVTOOLS__, and inspect the scene hierarchy and ShaderMaterials in a tree view.",
-  "version": "0.3.2",
+  "version": "0.5.0",
   "publisher": "three-debug-tools",
   "private": true,
   "engines": {
@@ -123,11 +123,11 @@
     "postinstall": "playwright install chromium"
   },
   "dependencies": {
-    "playwright": "^1.48.0"
+    "playwright": "^1.48.0",
+    "typescript": "^5.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "@types/vscode": "^1.90.0",
-    "typescript": "^5.6.0"
+    "@types/vscode": "^1.90.0"
   }
 }
