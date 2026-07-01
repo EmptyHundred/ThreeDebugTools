@@ -2,7 +2,7 @@
   "name": "three-scene-inspector",
   "displayName": "Three.js Scene Inspector",
   "description": "Load a URL headlessly, hook the three.js runtime via __THREE_DEVTOOLS__, and inspect the scene hierarchy and ShaderMaterials in a tree view.",
-  "version": "0.0.9",
+  "version": "0.3.2",
   "publisher": "three-debug-tools",
   "private": true,
   "engines": {
@@ -26,6 +26,11 @@
         {
           "id": "threeSceneTree",
           "name": "TREE"
+        },
+        {
+          "id": "threeUniforms",
+          "type": "webview",
+          "name": "Uniforms"
         }
       ]
     },
@@ -46,6 +51,11 @@
         "icon": "$(browser)"
       },
       {
+        "command": "threeInspector.scanUrlMobile",
+        "title": "Three Inspector: Scan URL (visible browser, mobile)",
+        "icon": "$(device-mobile)"
+      },
+      {
         "command": "threeInspector.closeBrowser",
         "title": "Three Inspector: Close Browser",
         "icon": "$(close)"
@@ -64,14 +74,19 @@
           "group": "navigation@2"
         },
         {
-          "command": "threeInspector.rescan",
+          "command": "threeInspector.scanUrlMobile",
           "when": "view == threeSceneTree",
           "group": "navigation@3"
         },
         {
+          "command": "threeInspector.rescan",
+          "when": "view == threeSceneTree",
+          "group": "navigation@4"
+        },
+        {
           "command": "threeInspector.closeBrowser",
           "when": "view == threeSceneTree && threeInspector.sessionOpen",
-          "group": "navigation@4"
+          "group": "navigation@5"
         }
       ]
     },
@@ -87,6 +102,17 @@
           "type": "number",
           "default": 1500,
           "description": "Milliseconds to wait after page load for three.js to initialize before scanning."
+        },
+        "threeInspector.live": {
+          "type": "boolean",
+          "default": true,
+          "description": "When a visible-browser session is open, live-poll the selected ShaderMaterial's uniform values into the Uniforms panel."
+        },
+        "threeInspector.liveIntervalMs": {
+          "type": "number",
+          "default": 250,
+          "minimum": 100,
+          "description": "Polling interval (ms) for live uniform updates."
         }
       }
     }

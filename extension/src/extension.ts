@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
-import { scanUrl, openScanSession, rescanSession, type ScanSession } from './scanner'
+import { scanUrl, openScanSession, rescanSession, pollUniforms, type ScanSession } from './scanner'
 import { SceneTreeProvider } from './treeProvider'
+import { UniformsPanel } from './uniformsPanel'
 import { resolveShaderFile } from './resolveShader'
 import type { ScanResult, ShaderMaterialInfo } from './types'
 
@@ -16,8 +17,10 @@ function setSessionActive(active: boolean): void {
 export function activate(context: vscode.ExtensionContext): void {
   const shaderIcon = vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.svg')
   const provider = new SceneTreeProvider(shaderIcon)
+  const uniformsPanel = new UniformsPanel()
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('threeSceneTree', provider)
+    vscode.window.registerTreeDataProvider('threeSceneTree', provider),
+    vscode.window.registerWebviewViewProvider(UniformsPanel.viewId, uniformsPanel)
   )
   setSessionActive(false)
 
@@ -41,9 +44,49 @@ export function activate(context: vscode.ExtensionContext): void {
       task
     )
 
-  /** Empty the tree and forget the last-scanned URL. */
+  // ---- Live uniform polling (only meaningful while a headed session is open) ----
+  let pollTimer: ReturnType<typeof setInterval> | undefined
+
+  const stopPolling = () => {
+    if (pollTimer) {
+      clearInterval(pollTimer)
+      pollTimer = undefined
+    }
+    uniformsPanel.setLive(false)
+  }
+
+  /** Begin polling the currently-selected material's uniforms on the open page. */
+  const startPolling = () => {
+    stopPolling()
+    const cfg = vscode.workspace.getConfiguration('threeInspector')
+    if (!cfg.get<boolean>('live', true)) return
+    if (!session || !uniformsPanel.currentUuid) return
+    const intervalMs = Math.max(100, cfg.get<number>('liveIntervalMs', 250))
+
+    uniformsPanel.setLive(true)
+    let inFlight = false
+    pollTimer = setInterval(async () => {
+      if (inFlight || !session) return
+      const uuid = uniformsPanel.currentUuid
+      if (!uuid) return
+      inFlight = true
+      try {
+        const uniforms = await pollUniforms(session, uuid)
+        if (uniforms) uniformsPanel.updateValues(uniforms)
+      } catch {
+        // Page navigated/closed mid-poll — stop quietly; session teardown handles UI.
+        stopPolling()
+      } finally {
+        inFlight = false
+      }
+    }, intervalMs)
+  }
+
+  /** Empty the tree, the uniforms panel, and forget the last-scanned URL. */
   const clearTree = () => {
+    stopPolling()
     provider.setResult(undefined)
+    uniformsPanel.clear()
     lastUrl = undefined
   }
 
@@ -73,12 +116,12 @@ export function activate(context: vscode.ExtensionContext): void {
   }
 
   /** Open a headed session against `url`, waiting for the server to be reachable. */
-  const doHeadedScan = async (url: string) => {
-    await withProgress(`Opening ${url}`, async () => {
+  const doHeadedScan = async (url: string, mobile = false) => {
+    await withProgress(`Opening ${url}${mobile ? ' (mobile)' : ''}`, async () => {
       try {
         await closeSession() // only one live window at a time
         await waitForUrl(url, 15_000)
-        const { result, session: s } = await openScanSession(url, { settleMs: settleMs() })
+        const { result, session: s } = await openScanSession(url, { settleMs: settleMs(), mobile })
         session = s
         trackDisconnect(s)
         setSessionActive(true)
@@ -97,6 +140,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.debug.onDidStartDebugSession((s) => {
       const cfg = (s.configuration as any).threeInspector
       if (cfg?.url && cfg.scan === 'headed') void doHeadedScan(cfg.url)
+      else if (cfg?.url && cfg.scan === 'mobile') void doHeadedScan(cfg.url, true)
     }),
     vscode.debug.onDidTerminateDebugSession((s) => {
       const cfg = (s.configuration as any).threeInspector
@@ -128,6 +172,14 @@ export function activate(context: vscode.ExtensionContext): void {
         argUrl(arg) ?? (await promptUrl('URL of the three.js page to scan (visible browser, stays open)'))
       if (!url) return
       await doHeadedScan(url)
+    }),
+
+    vscode.commands.registerCommand('threeInspector.scanUrlMobile', async (arg?: ScanArg) => {
+      const url =
+        argUrl(arg) ??
+        (await promptUrl('URL to scan (visible browser, mobile emulation, stays open)'))
+      if (!url) return
+      await doHeadedScan(url, true)
     }),
 
     vscode.commands.registerCommand('threeInspector.rescan', async () => {
@@ -167,6 +219,15 @@ export function activate(context: vscode.ExtensionContext): void {
       await closeSession()
       vscode.window.showInformationMessage('Three Inspector: browser closed.')
     }),
+
+    vscode.commands.registerCommand(
+      'threeInspector.showUniforms',
+      (material: ShaderMaterialInfo) => {
+        uniformsPanel.show(material)
+        // Live-track this material's values when a headed page is open.
+        startPolling()
+      }
+    ),
 
     vscode.commands.registerCommand(
       'threeInspector.openShader',

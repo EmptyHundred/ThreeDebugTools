@@ -16,7 +16,7 @@
       "console": "integratedTerminal",
       "threeInspector": {
         "url": "http://localhost:4563",
-        "scan": "headed"
+        "scan": "mobile"
       }
     }
   ]

@@ -8,11 +8,20 @@ export interface SceneNode {
   shaderMaterials?: ShaderMaterialInfo[]
 }
 
+export interface UniformInfo {
+  name: string
+  /** Discriminator: 'number' | 'boolean' | 'vec3' | 'color' | 'texture' | ... */
+  kind: string
+  /** JSON-safe representation of the uniform's current value. */
+  value: unknown
+}
+
 export interface ShaderMaterialInfo {
   name: string
   type: string // 'ShaderMaterial' | 'RawShaderMaterial'
   uuid: string
   uniformNames: string[]
+  uniforms: UniformInfo[]
   defines: Record<string, unknown>
   vertexShader: string
   fragmentShader: string

@@ -53,6 +53,12 @@ export class SceneTreeProvider implements vscode.TreeDataProvider<Entry> {
       item.description = m.type
       item.iconPath = new vscode.ThemeIcon('paintcan')
       item.contextValue = 'material'
+      // Clicking the material row opens its uniforms in the side panel.
+      item.command = {
+        command: 'threeInspector.showUniforms',
+        title: 'Show Uniforms',
+        arguments: [m],
+      }
       return item
     }
     // info leaf
